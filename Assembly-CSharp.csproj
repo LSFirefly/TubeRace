@@ -61,9 +61,11 @@
     <Compile Include="Assets\Scripts\BikeViewController.cs" />
     <Compile Include="Assets\Scripts\PowerupFuel.cs" />
     <Compile Include="Assets\Scripts\Powerup.cs" />
+    <Compile Include="Assets\Scripts\RaceTrackLinear.cs" />
     <Compile Include="Assets\Scripts\RaceTrack.cs" />
     <Compile Include="Assets\Scripts\PowerupCoolant.cs" />
-    <Compile Include="Assets\Scripts\RaceTrackLinear.cs" />
+    <Compile Include="Assets\Scripts\Player.cs" />
+    <Compile Include="Assets\Scripts\CameraController.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

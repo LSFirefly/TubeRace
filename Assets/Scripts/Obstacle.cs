@@ -2,17 +2,54 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Obstacle : MonoBehaviour
+namespace Race
 {
-    // Start is called before the first frame update
-    void Start()
+    public class Obstacle : MonoBehaviour
     {
-        
-    }
+        [SerializeField] private RaceTrack track;
+        [SerializeField] private float rollAngle;
+        [SerializeField] private float distance;
+        [SerializeField] private float rotationSpeed;
+        [SerializeField] private float maxRollAngle = 360.0f;
+        [SerializeField] [Range(0.0f, 20.0f)] private float radiusModifier=1;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        private void Update()
+        {
+            UpdateObstacleRotation();
+        }
+
+        private void OnValidate()
+        {
+            SetObstaclePosition();
+        }
+
+        private void SetObstaclePosition()
+        {
+            Vector3 obstaclePos = track.GetPosition(distance);
+            Vector3 obstacleDir = track.GetDirection(distance);
+
+            Quaternion q = Quaternion.AngleAxis(rollAngle, Vector3.forward);
+            Vector3 trackOffset = q * (Vector3.up * radiusModifier * track.Radius);
+
+            transform.position = obstaclePos - trackOffset;
+            transform.rotation = Quaternion.LookRotation(obstacleDir, trackOffset);
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            Vector3 centerLinePos = track.GetPosition(distance);
+            Gizmos.DrawSphere(centerLinePos, track.Radius);
+        }
+
+        private void UpdateObstacleRotation()
+        {
+            float dt = Time.deltaTime;
+            rollAngle += dt * rotationSpeed;
+
+            rollAngle = rollAngle % maxRollAngle;
+
+            SetObstaclePosition();
+        }
     }
 }

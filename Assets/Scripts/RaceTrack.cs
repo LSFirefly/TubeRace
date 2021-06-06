@@ -8,7 +8,7 @@ namespace Race
     {
         [Header("Base track properties")]
         [SerializeField] private float radius;
-        public float Padius => radius;
+        public float Radius => radius;
         public abstract float GetTrackLength();
 
         public abstract Vector3 GetPosition(float distance);
