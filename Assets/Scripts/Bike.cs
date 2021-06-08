@@ -29,6 +29,26 @@ namespace Race
         private float velocity;
         private float rollAngle;
 
+        public float GetDistance()
+        {
+            return distance;
+        }
+
+        public float GetVelocity()
+        {
+            return velocity;
+        }
+
+        public float GetRollAngle()
+        {
+            return rollAngle;
+        }
+
+        public RaceTrack GetTrack()
+        {
+            return track;
+        }
+
         private void Update()
         {
             UpdateBikePhysics();
