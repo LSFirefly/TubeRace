@@ -5,21 +5,30 @@ using UnityEngine;
 namespace Race
 {
     [System.Serializable]
-    public class BikeParameters 
+    public class BikeParameters
     {
+        public GameObject engineModel;
+        public GameObject hullModel;
+
         [Range(0.0f, 10.0f)] public float mass;
         [Range(0.0f, 100.0f)] public float thrust;
         [Range(0.0f, 100.0f)] public float agility;
         [Range(0.0f, 1.0f)] public float linearDrag;
         [Range(0.0f, 1.0f)] public float rotationDrag;
         [Range(0.0f, 1.0f)] public float collisionBounceFactor;
-        public float maxSpeed;
+
         public bool afterburner;
-        public GameObject engineModel, hullModel;
+        public float maxSpeed;
+        public float afterburnerThrust;
+        public float afterburnerMaxSpeedBonus;
+        public float afterburnerHeatGeneration;
+        public float afterburnerMaxHeat;
+        public float afterburnerCoolSpeed;
     }
 
-    public class Bike: MonoBehaviour
+    public class Bike : MonoBehaviour
     {
+        public static readonly string tag = "Bike";
         [SerializeField] private BikeParameters bikeParameters;
         [SerializeField] private BikeViewController bikeViewController;
         [SerializeField] private RaceTrack track;
@@ -28,6 +37,14 @@ namespace Race
         private float distance;
         private float velocity;
         private float rollAngle;
+        private float afterburnerHeat;
+        private float prevDistance;
+        private float fuel;
+
+
+        public bool EnableAfterburner { get; set; }
+
+        
 
         public float GetDistance()
         {
@@ -44,6 +61,23 @@ namespace Race
             return rollAngle;
         }
 
+        public float GetNormalizedHeat()
+        {
+            if (bikeParameters.afterburnerMaxHeat > 0)
+                return afterburnerHeat / bikeParameters.afterburnerMaxHeat;
+
+            return 0;
+        }
+
+        public float GetPrevDistance()
+        {
+            return prevDistance;
+        }
+
+        public float GetFuel()
+        {
+            return fuel;
+        }
         public RaceTrack GetTrack()
         {
             return track;
@@ -51,35 +85,69 @@ namespace Race
 
         private void Update()
         {
+            UpdateAfterburnerHeat();
             UpdateBikePhysics();
+        }
+
+        private void UpdateAfterburnerHeat()
+        {
+            afterburnerHeat -= bikeParameters.afterburnerCoolSpeed * Time.deltaTime;
+
+            if (afterburnerHeat < 0)
+                afterburnerHeat = 0;
+
+            //Check max heat
+            //***
+
+        }
+
+        public void CoolAfterburner()
+        {
+            afterburnerHeat = 0;
         }
 
         private void UpdateBikePhysics()
         {
             float dt = Time.deltaTime;
-                       
-            velocity += dt * forwardThrustAxis * bikeParameters.thrust;
-            rollAngle += dt * horizontalThrustAxis * bikeParameters.agility;
 
-            velocity = Mathf.Clamp(velocity, -bikeParameters.maxSpeed, bikeParameters.maxSpeed);
+            float FthrustMax = bikeParameters.thrust;
+            float Vmax = bikeParameters.maxSpeed;
+            float F = forwardThrustAxis * bikeParameters.thrust;
+
+            if (EnableAfterburner && ConsumeFuelForAfterburner(1.0f * Time.deltaTime))
+            {
+                afterburnerHeat += bikeParameters.afterburnerHeatGeneration * Time.deltaTime;
+
+                F += bikeParameters.afterburnerThrust;
+                Vmax += bikeParameters.afterburnerMaxSpeedBonus;
+                FthrustMax += bikeParameters.afterburnerThrust;
+            }
+
+            F += -velocity * (FthrustMax / Vmax);
+
+            float dv = dt * F;
+
+            velocity += dv;
+            rollAngle += dt * horizontalThrustAxis * bikeParameters.agility;
 
             float ds = velocity * dt;
 
             if (Physics.Raycast(transform.position, transform.forward, ds))
             {
-                velocity = -velocity*bikeParameters.collisionBounceFactor;
-                ds = velocity * dt;   
+                velocity = -velocity * bikeParameters.collisionBounceFactor;
+                ds = velocity * dt;
             }
+
+            prevDistance = distance;
 
             distance += ds;
             if (distance < 0)
                 distance = 0;
-
-            velocity += -velocity * bikeParameters.linearDrag*dt;         
+       
             rollAngle += -rollAngle * bikeParameters.rotationDrag * dt;
 
             SetBikePosition();
-            
+
         }
 
         private void SetBikePosition()
@@ -94,13 +162,6 @@ namespace Race
             transform.rotation = Quaternion.LookRotation(bikeDir, trackOffset);
         }
 
-        private void MoveBike()
-        {
-            float currentForwardVelocity = forwardThrustAxis* bikeParameters.maxSpeed;
-            Vector3 forwardMoveDelta = transform.forward * currentForwardVelocity * Time.deltaTime;
-            transform.position += forwardMoveDelta; 
-        }
-
         public void SetForwardThrustAxis(float val)
         {
             forwardThrustAxis = val;
@@ -109,6 +170,22 @@ namespace Race
         public void SetHorizontalThrustAxis(float val)
         {
             horizontalThrustAxis = val;
+        }
+
+        public bool ConsumeFuelForAfterburner(float amount)
+        {
+            if (fuel <= amount)
+                return false;
+
+            fuel -= amount;
+
+            return true;
+        }
+
+        public void AddFuel(float amount)
+        {
+            fuel += amount;
+            fuel = Mathf.Clamp(fuel, 0.0f, 100.0f);
         }
 
     }

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,6 +9,8 @@ namespace Race.UI
         [SerializeField] private Text labelDistance;
         [SerializeField] private Text labelRollAngle;
         [SerializeField] private Text labelLapNumber;
+        [SerializeField] private Text labelHeat;
+        [SerializeField] private Text labelFuel;
 
         [SerializeField] private Bike bike;
 
@@ -20,12 +20,14 @@ namespace Race.UI
             int distance = (int)bike.GetDistance();
             int roll = (int)bike.GetRollAngle();
             int laps = (int)(bike.GetDistance() / bike.GetTrack().GetTrackLength());
-            labelSpeed.text = "Speed: " + velocity.ToString() + " m/s";
-            labelDistance.text = "Distance: " + distance.ToString() + " m";
-            labelRollAngle.text = "Angle: " + roll.ToString() + " deg";
-            labelLapNumber.text = "Lap: " + (laps + 1).ToString();
-           
-
+            int heat = (int)(bike.GetNormalizedHeat() * 100.0f);
+            int fuel = (int)bike.GetFuel();
+            labelSpeed.text = "Speed: " + velocity + " m/s";
+            labelDistance.text = "Distance: " + distance + " m";
+            labelRollAngle.text = "Angle: " + roll + " deg";
+            labelLapNumber.text = "Lap: " + (laps + 1);
+            labelHeat.text = "Heat: " + heat;
+            labelFuel.text = "Fuel: " + fuel;
         }
     }
 }
