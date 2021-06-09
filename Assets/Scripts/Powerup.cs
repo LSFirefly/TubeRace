@@ -2,13 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Race 
+namespace Race
 {
     public abstract class Powerup : MonoBehaviour
     {
         [SerializeField] private RaceTrack track;
-        [SerializeField] private float rollAngle;
+        [SerializeField] [Range(0.0f, 360.0f)] private float rollAngle;
         [SerializeField] private float distance;
+        //[SerializeField] private float radiusModifier = 1;
+
 
         private void Update()
         {
@@ -17,16 +19,22 @@ namespace Race
 
         private void UpdateBikes()
         {
-        foreach (GameObject bikeGameObject in GameObject.FindGameObjectsWithTag(Bike.tag))
+            foreach (GameObject bikeGameObject in GameObject.FindGameObjectsWithTag(Bike.Tag))
             {
                 Bike bike = bikeGameObject.GetComponent<Bike>();
                 float prevDistance = bike.GetPrevDistance();
                 float currDistance = bike.GetDistance();
 
-                if(prevDistance < distance && currDistance > distance)
+                if (prevDistance < distance && currDistance > distance)
                 {
                     //limit angles
-                    OnPickedByBike(bike);
+                    float bikeRollAngle = bike.GetRollAngle();
+                    float offsetAngle = 10.0f;
+                    float leftBorder = rollAngle - offsetAngle;
+                    float rightBorder = rollAngle + offsetAngle;
+
+                    if (bikeRollAngle > leftBorder && bikeRollAngle < rightBorder)
+                        OnPickedByBike(bike);
                 }
             }
         }
@@ -45,7 +53,9 @@ namespace Race
             Vector3 powerupDir = track.GetDirection(distance);
 
             Quaternion q = Quaternion.AngleAxis(rollAngle, Vector3.forward);
-            Vector3 trackOffset = q * (Vector3.up * 0);
+            //    Vector3 trackOffset = q * (Vector3.up * 0);
+
+            Vector3 trackOffset = q * (Vector3.up * track.Radius);
 
             transform.position = powerupPos - trackOffset;
             transform.rotation = Quaternion.LookRotation(powerupDir, trackOffset);

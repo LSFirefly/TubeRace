@@ -17,6 +17,8 @@ namespace Race
         [Range(0.0f, 1.0f)] public float rotationDrag;
         [Range(0.0f, 1.0f)] public float collisionBounceFactor;
 
+        public readonly float maxRollAngle = 360.0f;
+
         public bool afterburner;
         public float maxSpeed;
         public float afterburnerThrust;
@@ -28,7 +30,7 @@ namespace Race
 
     public class Bike : MonoBehaviour
     {
-        public static readonly string tag = "Bike";
+        public static readonly string Tag = "Bike";
         [SerializeField] private BikeParameters bikeParameters;
         [SerializeField] private BikeViewController bikeViewController;
         [SerializeField] private RaceTrack track;
@@ -136,6 +138,8 @@ namespace Race
             {
                 velocity = -velocity * bikeParameters.collisionBounceFactor;
                 ds = velocity * dt;
+
+                afterburnerHeat += bikeParameters.afterburnerHeatGeneration;
             }
 
             prevDistance = distance;
@@ -145,6 +149,11 @@ namespace Race
                 distance = 0;
        
             rollAngle += -rollAngle * bikeParameters.rotationDrag * dt;
+           
+            if (rollAngle < 0) 
+                rollAngle = 360 + rollAngle;
+            if (rollAngle > 360) 
+                rollAngle = rollAngle - 360;
 
             SetBikePosition();
 
@@ -186,6 +195,13 @@ namespace Race
         {
             fuel += amount;
             fuel = Mathf.Clamp(fuel, 0.0f, 100.0f);
+        }
+
+        public void ReduceSpeed(float amount)
+        {
+            velocity -= amount;
+            if (velocity < 0)
+                velocity = 0;
         }
 
     }

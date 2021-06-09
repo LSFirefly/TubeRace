@@ -67,6 +67,7 @@
     <Compile Include="Assets\Scripts\RaceTrackLinear.cs" />
     <Compile Include="Assets\Scripts\RaceTrack.cs" />
     <Compile Include="Assets\Scripts\PowerupCoolant.cs" />
+    <Compile Include="Assets\Scripts\PowerupSpeedDown.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
