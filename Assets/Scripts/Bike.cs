@@ -21,6 +21,7 @@ namespace Race
 
         public bool afterburner;
         public float maxSpeed;
+        public float maxRotationSpeed;
         public float afterburnerThrust;
         public float afterburnerMaxSpeedBonus;
         public float afterburnerHeatGeneration;
@@ -38,6 +39,7 @@ namespace Race
         private float horizontalThrustAxis;
         private float distance;
         private float velocity;
+        private float rotationVelocity;
         private float rollAngle;
         private float afterburnerHeat;
         private float prevDistance;
@@ -130,7 +132,6 @@ namespace Race
             float dv = dt * F;
 
             velocity += dv;
-            rollAngle += dt * horizontalThrustAxis * bikeParameters.agility;
 
             float ds = velocity * dt;
 
@@ -147,12 +148,16 @@ namespace Race
             distance += ds;
             if (distance < 0)
                 distance = 0;
-       
-            rollAngle += -rollAngle * bikeParameters.rotationDrag * dt;
-           
-            if (rollAngle < 0) 
+
+            rotationVelocity += dt * horizontalThrustAxis * bikeParameters.agility;
+            rotationVelocity = Mathf.Clamp(rotationVelocity, -bikeParameters.maxRotationSpeed, bikeParameters.maxRotationSpeed);
+            rotationVelocity += -rotationVelocity * bikeParameters.rotationDrag * dt;
+
+            rollAngle += rotationVelocity * dt;
+
+            if (rollAngle < 0)
                 rollAngle = 360 + rollAngle;
-            if (rollAngle > 360) 
+            if (rollAngle > 360)
                 rollAngle = rollAngle - 360;
 
             SetBikePosition();
