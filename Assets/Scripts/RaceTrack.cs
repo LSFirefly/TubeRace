@@ -14,5 +14,10 @@ namespace Race
         public abstract Vector3 GetPosition(float distance);
 
         public abstract Vector3 GetDirection(float distance);
+
+        public virtual Quaternion GetRotation(float distance)
+        {
+            return Quaternion.identity;
+        }
     }
 }

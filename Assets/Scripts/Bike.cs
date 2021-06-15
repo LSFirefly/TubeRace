@@ -48,7 +48,6 @@ namespace Race
 
         public bool EnableAfterburner { get; set; }
 
-        
 
         public float GetDistance()
         {
@@ -150,10 +149,11 @@ namespace Race
                 distance = 0;
 
             rotationVelocity += dt * horizontalThrustAxis * bikeParameters.agility;
+
             rotationVelocity = Mathf.Clamp(rotationVelocity, -bikeParameters.maxRotationSpeed, bikeParameters.maxRotationSpeed);
             rotationVelocity += -rotationVelocity * bikeParameters.rotationDrag * dt;
-
             rollAngle += rotationVelocity * dt;
+
 
             if (rollAngle < 0)
                 rollAngle = 360 + rollAngle;
@@ -161,7 +161,6 @@ namespace Race
                 rollAngle = rollAngle - 360;
 
             SetBikePosition();
-
         }
 
         private void SetBikePosition()
@@ -172,8 +171,14 @@ namespace Race
             Quaternion q = Quaternion.AngleAxis(rollAngle, Vector3.forward);
             Vector3 trackOffset = q * (Vector3.up * track.Radius);
 
-            transform.position = bikePos - trackOffset;
-            transform.rotation = Quaternion.LookRotation(bikeDir, trackOffset);
+            // transform.position = bikePos - trackOffset;
+            // transform.rotation = Quaternion.LookRotation(bikeDir, trackOffset);
+
+            transform.position = bikePos;
+            transform.rotation = track.GetRotation(distance);
+            transform.Rotate(Vector3.forward, rollAngle, Space.Self);
+            transform.Translate(-Vector3.up * track.Radius, Space.Self);
+
         }
 
         public void SetForwardThrustAxis(float val)

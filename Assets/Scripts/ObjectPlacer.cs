@@ -10,18 +10,41 @@ namespace Race
         [SerializeField] private int numObjects;
         [SerializeField] private RaceTrack track;
 
+        [SerializeField] private bool randomizeRotation;
+        [SerializeField] private bool randomizePosition;
+        [SerializeField] private int seed;
+
         private void Start()
         {
-            float distance = 0;
+            float position = 0;
+            Random.InitState(seed);
 
-            for(int i=0; i< numObjects; i++)
+            for (int i = 0; i < numObjects; i++)
             {
-                var e = Instantiate(prefab);
+                if (randomizePosition)
+                {
+                    position = Random.value * track.GetTrackLength();
+                    InstantiateObject(position);
+                }
+                else
+                {
+                    InstantiateObject(position);
+                    position += track.GetTrackLength() / numObjects;
+                }
+            }
 
-                e.transform.position = track.GetPosition(distance);
-                e.transform.forward = track.GetDirection(distance);
+        }
 
-                distance += track.GetTrackLength() / numObjects;
+        private void InstantiateObject(float position)
+        {
+            var e = Instantiate(prefab);
+
+            e.transform.position = track.GetPosition(position);
+            e.transform.rotation = track.GetRotation(position);
+
+            if (randomizeRotation)
+            {
+                e.transform.Rotate(Vector3.forward, UnityEngine.Random.Range(0, 360), Space.Self);
             }
         }
     }
