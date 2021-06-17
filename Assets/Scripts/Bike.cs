@@ -109,6 +109,11 @@ namespace Race
             afterburnerHeat = 0;
         }
 
+        public float GetNormalizedSpeed()
+        {
+            return Mathf.Clamp01(velocity / bikeParameters.maxSpeed);
+        }
+
         private void UpdateBikePhysics()
         {
             float dt = Time.deltaTime;
