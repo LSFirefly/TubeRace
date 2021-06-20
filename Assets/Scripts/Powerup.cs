@@ -2,6 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Race
 {
     public abstract class Powerup : MonoBehaviour
@@ -9,6 +13,7 @@ namespace Race
         [SerializeField] private RaceTrack track;
         [SerializeField] [Range(0.0f, 360.0f)] private float rollAngle;
         [SerializeField] private float distance;
+        [SerializeField] private float offsetAngle = 10.0f;
         //[SerializeField] private float radiusModifier = 1;
 
 
@@ -29,7 +34,7 @@ namespace Race
                 {
                     //limit angles
                     float bikeRollAngle = bike.GetRollAngle();
-                    float offsetAngle = 10.0f;
+                    
                     float leftBorder = rollAngle - offsetAngle;
                     float rightBorder = rollAngle + offsetAngle;
 

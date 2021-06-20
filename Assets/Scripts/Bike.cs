@@ -44,6 +44,7 @@ namespace Race
         private float afterburnerHeat;
         private float prevDistance;
         private float fuel;
+        public bool IsMovementControlsActive { get; set; }
 
 
         public bool EnableAfterburner { get; set; }

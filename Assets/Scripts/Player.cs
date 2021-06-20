@@ -22,6 +22,9 @@ namespace Race
             activeBike.SetForwardThrustAxis(0);
             activeBike.SetHorizontalThrustAxis(0);
 
+            if (!activeBike.IsMovementControlsActive)
+                return;
+
             if(Input.GetKey(KeyCode.W))
             {
                 activeBike.SetForwardThrustAxis(1);
