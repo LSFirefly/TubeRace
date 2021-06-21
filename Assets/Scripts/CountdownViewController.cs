@@ -13,15 +13,18 @@ namespace Race
         private void Update()
         {
             int t = (int)raceController.CountTimer;
-            if (t != 0)
+            if (t > 0)
             {
-
                 label.text = t.ToString();
+            }
+            else if (t == 0)
+            {
+                label.text = "GO!";
             }
             else
             {
                 label.text = "";
-                gameObject.SetActive(false);
+                 gameObject.SetActive(false);
             }
         }
     }

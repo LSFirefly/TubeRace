@@ -35,6 +35,7 @@ namespace Race
         [SerializeField] private BikeParameters bikeParameters;
         [SerializeField] private BikeViewController bikeViewController;
         [SerializeField] private RaceTrack track;
+        [SerializeField] private bool isPlayerBike;
         private float forwardThrustAxis;
         private float horizontalThrustAxis;
         private float distance;
@@ -44,6 +45,13 @@ namespace Race
         private float afterburnerHeat;
         private float prevDistance;
         private float fuel;
+        private float lapTime;
+        private float startLapTime;
+
+        private float currentLap = 1;
+
+        public bool IsPlayerBike => isPlayerBike;
+
         public bool IsMovementControlsActive { get; set; }
 
 
@@ -91,6 +99,7 @@ namespace Race
         {
             UpdateAfterburnerHeat();
             UpdateBikePhysics();
+            UpdateBestLapTime();
         }
 
         private void UpdateAfterburnerHeat()
@@ -137,6 +146,9 @@ namespace Race
             float dv = dt * F;
 
             velocity += dv;
+
+            if (bikeStatistics.TopSpeed < Mathf.Abs(velocity))
+                bikeStatistics.TopSpeed = Mathf.Abs(velocity);
 
             float ds = velocity * dt;
 
@@ -187,6 +199,20 @@ namespace Race
 
         }
 
+        private void UpdateBestLapTime()
+        {
+            int lap = (int)(distance / track.GetTrackLength()) + 1; //номер круга
+            if (lap > currentLap ) // если увеличился номер круга
+            {
+                currentLap++;
+                lapTime = Time.time - startLapTime;
+                startLapTime = Time.time;
+
+                if (lapTime < bikeStatistics.BestLapTime || bikeStatistics.BestLapTime ==0)
+                    bikeStatistics.BestLapTime = lapTime;
+            }  
+        }
+
         public void SetForwardThrustAxis(float val)
         {
             forwardThrustAxis = val;
@@ -218,6 +244,35 @@ namespace Race
             velocity -= amount;
             if (velocity < 0)
                 velocity = 0;
+        }
+
+        public class BikeStatistics
+        {
+            public float TopSpeed;
+            public float TotalTime;
+            public float BestLapTime;
+            public int RacePlace;
+        }
+
+        private BikeStatistics bikeStatistics;
+        public BikeStatistics Statistics => bikeStatistics;
+
+        private void Awake()
+        {
+            bikeStatistics = new BikeStatistics();
+        }
+
+        private float raceStartTime;
+
+        public void OnRaceStart()
+        {
+            raceStartTime = Time.time;
+            startLapTime = raceStartTime;
+        }
+
+        public void OnRaceEnd()
+        {
+            bikeStatistics.TotalTime = Time.time - raceStartTime;
         }
 
     }

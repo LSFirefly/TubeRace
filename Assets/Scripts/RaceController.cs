@@ -21,7 +21,11 @@ namespace Race
         [SerializeField] private Bike[] bikes;
         [SerializeField] private int countdownTimer;
         [SerializeField] private RaceCondition[] conditions;
+        [SerializeField] private RaceTrack track;
+        [SerializeField] private RaceResultsViewController raceResultsViewController;
         private float countTimer;
+        private List<Bike> activeBikes;
+        private List<Bike> finishedBikes;
 
         public int MaxLaps => maxLaps;
         public Bike[] Bikes => bikes;
@@ -39,20 +43,25 @@ namespace Race
             if (!IsRaceActive)
                 return;
 
+            UpdateBikeRacePositions();
             UpdateRacePrestart();
             UpdateConditions();
         }
 
         public  void StartRace()
         {
+            activeBikes = new List<Bike>(bikes);
+            finishedBikes = new List<Bike>();
+
             IsRaceActive = true;
 
             countTimer = countdownTimer;
 
             foreach(RaceCondition condition in conditions)
-            {
                 condition.OnRaceStart();
-            }
+
+            foreach (Bike bike in bikes)
+                bike.OnRaceStart();
 
             eventRaceStart?.Invoke();
             
@@ -70,15 +79,13 @@ namespace Race
             eventRaceFinished?.Invoke();
         }
 
-       
-
         private void UpdateRacePrestart()
         {
-            if (countTimer > 0)
+            if (countTimer > -1)
             {
                 countTimer -= Time.deltaTime;
 
-                if (countTimer <= 0)
+                if (countTimer < 0)
                 {
                     foreach (Bike bike in bikes)
                         bike.IsMovementControlsActive = true;
@@ -88,7 +95,7 @@ namespace Race
 
         private void UpdateConditions()
         {
-            if (!IsRaceActive)
+            if (IsRaceActive)
                 return;
 
             foreach(RaceCondition condition in conditions)
@@ -99,6 +106,36 @@ namespace Race
             }
 
             EndRace();
+        }
+
+        private void UpdateBikeRacePositions()
+        {
+            //if(activeBikes.Count == 0)
+            //{
+            //    EndRace();
+            //    return;
+            //}
+
+            foreach(Bike bike in activeBikes)
+            {
+                if (finishedBikes.Contains(bike))
+                    continue;
+
+                float dist = bike.GetDistance();
+                float totalRaceDistance = maxLaps * track.GetTrackLength();
+
+                if(dist > totalRaceDistance)
+                {
+                    finishedBikes.Add(bike);
+                    bike.Statistics.RacePlace = finishedBikes.Count;
+                    bike.OnRaceEnd();
+
+                    if(bike.IsPlayerBike)
+                    {
+                        raceResultsViewController.Show(bike.Statistics);
+                    }
+                }
+            }
         }
     }
 }

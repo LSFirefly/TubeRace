@@ -14,6 +14,7 @@ namespace Race
                 return;
 
             Bike[] bikes = raceController.Bikes;
+
             foreach(Bike bike in bikes)
             {
                 int laps = (int)(bike.GetDistance() / bike.GetTrack().GetTrackLength());
