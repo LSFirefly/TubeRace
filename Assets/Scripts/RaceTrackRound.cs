@@ -26,6 +26,8 @@ namespace Race
     public class RaceTrackRound : RaceTrack
     {
         [SerializeField] private float circleRadius;
+        [SerializeField] private Vector3 circleCenter;
+        //[SerializeField] private Vector3 circleNormal;
         [SerializeField] private int division;
         [SerializeField] private Quaternion[] trackSampledRotations;
         [SerializeField] private Vector3[] trackSampledPoints;
@@ -52,7 +54,7 @@ namespace Race
             for (int i = 0; i< division; i++)
             {
                 float angle = 2 * Mathf.PI * i / division;
-                Vector3 newPos = new Vector3(Mathf.Cos(angle) * circleRadius, 0, Mathf.Sin(angle) * circleRadius);
+                Vector3 newPos = new Vector3(Mathf.Cos(angle) * circleRadius, 0, Mathf.Sin(angle) * circleRadius) + circleCenter;
                 points.Add(newPos);
             }
 
@@ -111,7 +113,7 @@ namespace Race
 
         private void DrawRound()
         {
-            Handles.DrawWireDisc(Vector3.zero, Vector3.up, circleRadius);
+            Handles.DrawWireDisc(circleCenter, Vector3.up, circleRadius);
         }
 
         public override Vector3 GetDirection(float distance)
