@@ -39,14 +39,17 @@ namespace Race
 
             CurvedTrackPoint[] trackPoints = curvedTrack.TrackPoints;
 
-            for (int i = 0; i < trackPoints.Length; i++)
+            int countOfTubePoints = trackPoints.Length / 2 + 1;
+            Debug.Log(countOfTubePoints);
+          
+            for (int i = 0; i < countOfTubePoints; i++)
             {
                 SplineMesh.SplineNode node = new SplineMesh.SplineNode(trackPoints[i].transform.position,
                     trackPoints[i].transform.position + trackPoints[i].transform.forward * trackPoints[i].GetLength());
                 spline.nodes.Add(node);
             }
 
-            spline.nodes.Add(spline.nodes[0]);
+           // spline.nodes.Add(spline.nodes[0]);
 
             //var n0 = spline.nodes[0];
             //n0.Position = pointA.transform.position;
