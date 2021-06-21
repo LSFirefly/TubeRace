@@ -56,7 +56,7 @@ namespace Race
         {
             Vector3 powerupPos = track.GetPosition(distance);
             Vector3 powerupDir = track.GetDirection(distance);
-
+           
             Quaternion q = Quaternion.AngleAxis(rollAngle, Vector3.forward);
             //    Vector3 trackOffset = q * (Vector3.up * 0);
 

@@ -16,7 +16,7 @@ namespace Race
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.cyan;
-            Gizmos.DrawSphere(transform.position, 10.0f);
+            Gizmos.DrawSphere(transform.position, 3.0f);
         }
     }
 }

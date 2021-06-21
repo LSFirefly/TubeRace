@@ -35,12 +35,14 @@ namespace Race
         [SerializeField] private bool debugDrawBezier;
         [SerializeField] private bool debugDrawSampledPoints;
 
+        public CurvedTrackPoint[] TrackPoints => trackPoints;
+
         private void OnDrawGizmos()
         {
             if (debugDrawBezier)
-                DrawBezierCurve();
-            if (debugDrawSampledPoints)
-                DrawSampledTrackPoints();
+                  DrawBezierCurve();
+                if (debugDrawSampledPoints)
+               DrawSampledTrackPoints();
         }
 
         public void GenerateTrackData()
