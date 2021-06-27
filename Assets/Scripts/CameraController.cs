@@ -34,14 +34,17 @@ namespace Race
 
         private void UpdateShake()
         {
-            var cam = Camera.main;
-            var t = targetBike.GetNormalizedSpeed();
-            var curveValue = shakeCurve.Evaluate(t);
+            if (Time.timeScale > 0)
+            {
+                var cam = Camera.main;
+                var t = targetBike.GetNormalizedSpeed();
+                var curveValue = shakeCurve.Evaluate(t);
 
-            var randomVector = UnityEngine.Random.insideUnitSphere * shakeFactor;
-            randomVector.z = 0;
+                var randomVector = UnityEngine.Random.insideUnitSphere * shakeFactor;
+                randomVector.z = 0;
 
-            cam.transform.localPosition = initialLocalPosition + randomVector * curveValue;
+                cam.transform.localPosition = initialLocalPosition + randomVector * curveValue;
+            }
         }
     }
 }

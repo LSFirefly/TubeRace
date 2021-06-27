@@ -28,5 +28,10 @@ namespace Race
             bestLapTime.text = "Best lap time: " + stats.BestLapTime.ToString() + " seconds";
 
         }
+
+        public void OnButtonQuit()
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(PauseViewController.MainMenuScene);
+        }
     }
 }
