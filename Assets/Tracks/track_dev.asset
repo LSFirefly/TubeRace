@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f723338a7b938274db8122092b3bb4c0, type: 3}
   m_Name: track_dev
   m_EditorClassIdentifier: 
+  track: {fileID: 0}
   trackName: DevTrack
   sceneNickname: DevScene
-  previewImage: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  previewImage: {fileID: 21300000, guid: 0b476149db97473479c70200a2f34b72, type: 3}
