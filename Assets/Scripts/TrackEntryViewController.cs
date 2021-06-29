@@ -25,7 +25,7 @@ namespace Race
             activeDescription = desc;
             trackName.text = desc.TrackName;
             preview.sprite = desc.PreviewImage;
-            trackLength.text = "Track Length: " + desc.TrackLength;
+           trackLength.text = "Track Length: " + desc.TrackLength + " m";
         }
         
         public void OnButtonStartLevel()

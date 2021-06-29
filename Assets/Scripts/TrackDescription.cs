@@ -7,25 +7,27 @@ namespace Race
     [CreateAssetMenu()]
     public class TrackDescription : ScriptableObject
     {
-       // [SerializeField] RaceTrack track;
+        // [SerializeField] RaceTrack track;
+        //[SerializeField] GameObject RaceTrack;
         [SerializeField] private string trackName;
         [SerializeField] private string sceneNickname;
         [SerializeField] private Sprite previewImage;
-        private string trackLength;
+        [SerializeField] private float trackLength;
         public string TrackName => trackName;
         public string SceneNickname => sceneNickname;
         public Sprite PreviewImage => previewImage;
 
-        //public string TrackLength
-        //{
-        //    get
-        //    {
-        //        return trackLength;
-        //    }
-        //    set
-        //    {
-        //        trackLength = track.GetTrackLength().ToString();
-        //    }
-        //}
+        public float TrackLength
+        {
+            get
+            {
+                return trackLength;
+            }
+            set
+            {
+                trackLength = value;
+            }
+        }
+        
     }
 }

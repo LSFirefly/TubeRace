@@ -34,6 +34,7 @@ namespace Race
         [SerializeField] private float trackSampledLength;
         [SerializeField] private bool debugDrawBezier;
         [SerializeField] private bool debugDrawSampledPoints;
+        [SerializeField] private TrackDescription trackDescription;
       
         public CurvedTrackPoint[] TrackPoints => trackPoints;
 
@@ -90,6 +91,7 @@ namespace Race
 
             EditorUtility.SetDirty(this);
 
+            trackDescription.TrackLength = trackSampledLength;
         }
 
         private void DrawSampledTrackPoints()

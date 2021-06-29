@@ -32,7 +32,6 @@ namespace Race
             int width = System.Convert.ToInt32(sizes[0]);
             int height = System.Convert.ToInt32(sizes[0]);
             Screen.SetResolution(width, height, false);
-            Debug.Log(value);
         }
     }
 }
