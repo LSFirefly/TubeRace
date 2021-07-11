@@ -32,6 +32,8 @@ namespace Race
     public class Bike : MonoBehaviour
     {
         public static readonly string Tag = "Bike";
+        [SerializeField] private AudioSource collisionSfx;
+        [SerializeField] private AnimationCurve collisionVolumeCurve;
         [SerializeField] private BikeParameters bikeParameters;
         [SerializeField] private BikeViewController bikeViewController;
         [SerializeField] private RaceTrack track;
@@ -154,10 +156,13 @@ namespace Race
 
             if (Physics.Raycast(transform.position, transform.forward, ds))
             {
+                collisionSfx.volume = collisionVolumeCurve.Evaluate(GetNormalizedSpeed());
+                collisionSfx.Play();
+
                 velocity = -velocity * bikeParameters.collisionBounceFactor;
                 ds = velocity * dt;
 
-                afterburnerHeat += bikeParameters.afterburnerHeatGeneration;
+                afterburnerHeat += bikeParameters.afterburnerHeatGeneration;   
             }
 
             prevDistance = distance;
@@ -166,11 +171,15 @@ namespace Race
             if (distance < 0)
                 distance = 0;
 
-            rotationVelocity += dt * horizontalThrustAxis * bikeParameters.agility;
 
-            rotationVelocity = Mathf.Clamp(rotationVelocity, -bikeParameters.maxRotationSpeed, bikeParameters.maxRotationSpeed);
-            rotationVelocity += -rotationVelocity * bikeParameters.rotationDrag * dt;
-            rollAngle += rotationVelocity * dt;
+            rotationVelocity = dt * horizontalThrustAxis * bikeParameters.agility;
+            rollAngle += rotationVelocity;
+            rollAngle += -rollAngle * bikeParameters.rotationDrag * dt;
+           // rotationVelocity += dt * horizontalThrustAxis * bikeParameters.agility;
+
+           // rotationVelocity = Mathf.Clamp(rotationVelocity, -bikeParameters.maxRotationSpeed, bikeParameters.maxRotationSpeed);
+           /// rotationVelocity += -rotationVelocity * bikeParameters.rotationDrag * dt;
+           // rollAngle += rotationVelocity * dt;
 
 
             if (rollAngle < 0)

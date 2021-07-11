@@ -14,6 +14,7 @@ namespace Race
         [SerializeField] [Range(0.0f, 360.0f)] private float rollAngle;
         [SerializeField] private float distance;
         [SerializeField] private float offsetAngle = 10.0f;
+        [SerializeField] private AudioSource audioSource;
         //[SerializeField] private float radiusModifier = 1;
 
 
@@ -39,7 +40,11 @@ namespace Race
                     float rightBorder = rollAngle + offsetAngle;
 
                     if (bikeRollAngle > leftBorder && bikeRollAngle < rightBorder)
+                    {
                         OnPickedByBike(bike);
+                        audioSource.volume = 10;
+                        audioSource.Play();
+                    }
                 }
             }
         }

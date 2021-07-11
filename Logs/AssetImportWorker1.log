@@ -1,0 +1,277 @@
+Using pre-set license
+Built from '2020.3/staging' branch; Version is '2020.3.11f1 (99c7afb366b3) revision 10078127'; Using compiler version '192528614'; Build Type 'Release'
+OS: 'Windows 10 Home; OS build 19042.1083; Version 2009; 64bit' Language: 'ru' Physical Memory: 3947 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1, IsPro: 0
+
+ COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\2020.3.11f1\Editor\Unity.exe
+-adb2
+-batchMode
+-noUpm
+-name
+AssetImportWorker1
+-projectPath
+C:/Users/1/Desktop/Обучающий проект/TubeRace
+-logFile
+Logs/AssetImportWorker1.log
+-srvPort
+54722
+Successfully changed project path to: C:/Users/1/Desktop/Обучающий проект/TubeRace
+C:/Users/1/Desktop/Обучающий проект/TubeRace
+Using Asset Import Pipeline V2.
+Refreshing native plugins compatible for Editor in 189.76 ms, found 2 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 2020.3.11f1 (99c7afb366b3)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/2020.3.11f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/Users/1/Desktop/Обучающий проект/TubeRace/Assets
+GfxDevice: creating device client; threaded=0
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.0]
+    Renderer: NVIDIA GeForce GT 630M (ID=0xde9)
+    Vendor:   
+    VRAM:     978 MB
+    Driver:   21.21.13.7654
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/2020.3.11f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/2020.3.11f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit'
+Mono config path = 'C:/Program Files/Unity/2020.3.11f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56012
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/2020.3.11f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Registered in 0.012848 seconds.
+Native extension for WindowsStandalone target not found
+Refreshing native plugins compatible for Editor in 101.50 ms, found 2 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Mono: successfully reloaded assembly
+- Completed reload, in  7.573 seconds
+Platform modules already initialized, skipping
+Registering precompiled user dll's ...
+Registered in 0.040322 seconds.
+Begin MonoManager ReloadAssembly
+Native extension for WindowsStandalone target not found
+Refreshing native plugins compatible for Editor in 1.02 ms, found 2 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Mono: successfully reloaded assembly
+- Completed reload, in  6.820 seconds
+Platform modules already initialized, skipping
+========================================================================
+Worker process is ready to serve import requests
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.29 seconds
+Refreshing native plugins compatible for Editor in 0.84 ms, found 2 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Unloading 1543 Unused Serialized files (Serialized files now loaded: 0)
+System memory in use before: 95.0 MB.
+System memory in use after: 95.0 MB.
+
+Unloading 19 unused Assets to reduce memory usage. Loaded Objects now: 2001.
+Total: 6.233100 ms (FindLiveObjects: 0.350800 ms CreateObjectMapping: 0.128800 ms MarkObjects: 5.357100 ms  DeleteObjects: 0.392900 ms)
+
+========================================================================
+Received Import Request.
+  path: Assets/Scripts/BikeHudViewController.cs
+  artifactKey: Guid(4890d1bd03fe4ce41acfdd78df8276e4) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/BikeHudViewController.cs using Guid(4890d1bd03fe4ce41acfdd78df8276e4) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'b0b77a76e8f5949983ed1f1349f5c589') in 0.105212 seconds
+  Import took 0.114740 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.002204 seconds.
+  path: Assets/Scripts/BikeViewController.cs
+  artifactKey: Guid(ac2b0721f284ef34abaa61b92532dd45) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/BikeViewController.cs using Guid(ac2b0721f284ef34abaa61b92532dd45) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'bf128cfae68412db7610aee394e7f93e') in 0.011735 seconds
+  Import took 0.019436 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 10.791178 seconds.
+  path: Assets/Scripts/CountdownViewController.cs
+  artifactKey: Guid(ef964bc242954b44b87579cd43a70a06) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/CountdownViewController.cs using Guid(ef964bc242954b44b87579cd43a70a06) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '134e5cc8583e585050189136c932aa65') in 0.015825 seconds
+  Import took 0.036097 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 17.626609 seconds.
+  path: Assets/Scripts/CurvedTrackPoint.cs
+  artifactKey: Guid(abc070b7566809f46b0b09157f1285c3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/CurvedTrackPoint.cs using Guid(abc070b7566809f46b0b09157f1285c3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '9c10fac2f505717f45a9f1af2b069f8b') in 0.010413 seconds
+  Import took 0.017294 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 17.146462 seconds.
+  path: Assets/Scripts/EngineSfxController.cs
+  artifactKey: Guid(c66e39520766cb24590d616436c6660a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/EngineSfxController.cs using Guid(c66e39520766cb24590d616436c6660a) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '745ce3401363e009990eb8594164741f') in 0.029906 seconds
+  Import took 0.043392 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 15.764994 seconds.
+  path: Assets/Scripts/MainMenuViewController.cs
+  artifactKey: Guid(6d36dddaabdba8b4fb82298846211c65) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/MainMenuViewController.cs using Guid(6d36dddaabdba8b4fb82298846211c65) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '69e12386d8879d65cdcbfeea5e41f8d1') in 0.010655 seconds
+  Import took 0.017471 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 16.863686 seconds.
+  path: Assets/Scripts/ObjectPlacer.cs
+  artifactKey: Guid(2ac021647376b7e4580f2c358c9b2b55) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/ObjectPlacer.cs using Guid(2ac021647376b7e4580f2c358c9b2b55) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'c8af23de3211037a8959eeba467ade91') in 0.009517 seconds
+  Import took 0.016847 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 16.051737 seconds.
+  path: Assets/Scripts/Obstacle.cs
+  artifactKey: Guid(d3b745d94168914459bb52fa10df6e55) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/Obstacle.cs using Guid(d3b745d94168914459bb52fa10df6e55) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '1687fc17ce162dadaede6bb22a80da10') in 0.014354 seconds
+  Import took 0.026838 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 18.497577 seconds.
+  path: Assets/Scripts/OptionsViewController.cs
+  artifactKey: Guid(eb5e4988d52acd941957a4aa22406119) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/OptionsViewController.cs using Guid(eb5e4988d52acd941957a4aa22406119) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '45fa4036a83cd358f4175f29e13792fd') in 0.042612 seconds
+  Import took 0.075527 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 14.094399 seconds.
+  path: Assets/Scripts/PauseViewController.cs
+  artifactKey: Guid(25c086640e529a643b9715d2982c82bf) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/PauseViewController.cs using Guid(25c086640e529a643b9715d2982c82bf) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'd0b1bb36daf506f1ed3142faadc93dba') in 0.016174 seconds
+  Import took 0.032098 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 30.670300 seconds.
+  path: Assets/Scripts/Powerup.cs
+  artifactKey: Guid(888f4faec873bc542bde956504d920d3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/Powerup.cs using Guid(888f4faec873bc542bde956504d920d3) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '6e7277529e4dedfc48c63f09b1112535') in 0.035636 seconds
+  Import took 0.063959 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 17.975926 seconds.
+  path: Assets/Scripts/PowerupCoolant.cs
+  artifactKey: Guid(f90218951a83f2e4bb2816ff27a8ff1b) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/PowerupCoolant.cs using Guid(f90218951a83f2e4bb2816ff27a8ff1b) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '9708ce80f24c7219093015d77b5221c6') in 0.028820 seconds
+  Import took 0.075550 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 18.360447 seconds.
+  path: Assets/Scripts/PowerupFuel.cs
+  artifactKey: Guid(7e9ebd60b26aa3e478a31a7281bbaefd) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/PowerupFuel.cs using Guid(7e9ebd60b26aa3e478a31a7281bbaefd) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '5354b650c1275e4da713bf37303398e0') in 0.188840 seconds
+  Import took 0.242727 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 12.844747 seconds.
+  path: Assets/Scripts/PowerupSpeedDown.cs
+  artifactKey: Guid(e6c2a6174673cdd4db9c0e9e7de573eb) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/PowerupSpeedDown.cs using Guid(e6c2a6174673cdd4db9c0e9e7de573eb) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '72aff0d7821f6188bed242c0e74281fe') in 0.046184 seconds
+  Import took 0.064380 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 19.357909 seconds.
+  path: Assets/Scripts/RaceCondition.cs
+  artifactKey: Guid(69a573215f2da2142942de5a44f1d922) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/RaceCondition.cs using Guid(69a573215f2da2142942de5a44f1d922) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'a4a03285f0b37993941e80bde562224b') in 0.265098 seconds
+  Import took 0.294683 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 25.054734 seconds.
+  path: Assets/Scripts/RaceConditionLaps.cs
+  artifactKey: Guid(3fe3f1fbd8dde8c4f83ca28ed802753e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/RaceConditionLaps.cs using Guid(3fe3f1fbd8dde8c4f83ca28ed802753e) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '463058bd38b78a3196c69ee66ddfb428') in 0.011393 seconds
+  Import took 0.024877 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 28.724957 seconds.
+  path: Assets/Scripts/RaceController.cs
+  artifactKey: Guid(404ec0ec3f5c6d644a315dba36de4992) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/RaceController.cs using Guid(404ec0ec3f5c6d644a315dba36de4992) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '537c5caf3a53e8a69a31d9884a82219a') in 0.012651 seconds
+  Import took 0.022402 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.009124 seconds.
+  path: Assets/Scripts/RaceController.cs
+  artifactKey: Guid(404ec0ec3f5c6d644a315dba36de4992) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/RaceController.cs using Guid(404ec0ec3f5c6d644a315dba36de4992) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '537c5caf3a53e8a69a31d9884a82219a') in 0.010108 seconds
+  Import took 0.019771 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 23.754312 seconds.
+  path: Assets/Scripts/RaceResultsViewController.cs
+  artifactKey: Guid(e04c8260092669640b7e4982a9245d55) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/RaceResultsViewController.cs using Guid(e04c8260092669640b7e4982a9245d55) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '4b639f45f0085abcc4840b1ededba03a') in 0.143206 seconds
+  Import took 0.173174 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 14.576805 seconds.
+  path: Assets/Scripts/RaceTrack.cs
+  artifactKey: Guid(eacba4acf44ce504a8995b93445c2ff8) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/RaceTrack.cs using Guid(eacba4acf44ce504a8995b93445c2ff8) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '9da139300da05c6e8e3499f759a036b8') in 0.012994 seconds
+  Import took 0.029664 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 15.109464 seconds.
+  path: Assets/Scripts/RaceTrackCurved.cs
+  artifactKey: Guid(4075e0c718114104f8aa875c4b69f606) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/RaceTrackCurved.cs using Guid(4075e0c718114104f8aa875c4b69f606) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'adcf5161b5616581116e3bef3305f10b') in 0.049821 seconds
+  Import took 0.070631 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 73.517831 seconds.
+  path: Assets/Scripts/SplineMeshProxy.cs
+  artifactKey: Guid(fe6cb6b71a9618b4c86a91440a2b402c) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/SplineMeshProxy.cs using Guid(fe6cb6b71a9618b4c86a91440a2b402c) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '78dab777123185761d2937641d3e8868') in 0.062623 seconds
+  Import took 0.167982 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 17.348313 seconds.
+  path: Assets/Scripts/TrackDescription.cs
+  artifactKey: Guid(f723338a7b938274db8122092b3bb4c0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/TrackDescription.cs using Guid(f723338a7b938274db8122092b3bb4c0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '06635492f8dff21e0292feb1748495b0') in 0.017868 seconds
+  Import took 0.034863 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 0.050476 seconds.
+  path: Assets/Scripts/TrackDescription.cs
+  artifactKey: Guid(f723338a7b938274db8122092b3bb4c0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/TrackDescription.cs using Guid(f723338a7b938274db8122092b3bb4c0) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: '06635492f8dff21e0292feb1748495b0') in 0.016924 seconds
+  Import took 0.051901 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 14.818226 seconds.
+  path: Assets/Scripts/TrackEntryViewController.cs
+  artifactKey: Guid(b2c76a044b528844f9704fbeb8ff81c4) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/TrackEntryViewController.cs using Guid(b2c76a044b528844f9704fbeb8ff81c4) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'e3d349dcc1f5318f209e04e5c0ed83e3') in 0.027734 seconds
+  Import took 0.040732 seconds .
+
+========================================================================
+Received Import Request.
+  Time since last request: 12.174261 seconds.
+  path: Assets/Scripts/TrackSelectionViewController.cs
+  artifactKey: Guid(9e464e17441cb534c89c4972197fb1ed) Importer(815301076,1909f56bfc062723c751e8b465ee728b)
+Start importing Assets/Scripts/TrackSelectionViewController.cs using Guid(9e464e17441cb534c89c4972197fb1ed) Importer(815301076,1909f56bfc062723c751e8b465ee728b)  -> (artifact id: 'b7c60b24519ec84a2f0c389f67db1827') in 0.031966 seconds
+  Import took 0.044698 seconds .
+
+AssetImportWorkerClient::OnTransportError - code=2 error=End of file

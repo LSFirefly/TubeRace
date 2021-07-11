@@ -88,15 +88,17 @@ namespace Race
                     trackSampledLength += segmentLength;
                 }
             }
-
+#if UNITY_EDITOR
             EditorUtility.SetDirty(this);
-
+#endif
             trackDescription.TrackLength = trackSampledLength;
         }
 
         private void DrawSampledTrackPoints()
         {
+#if UNITY_EDITOR
             Handles.DrawAAPolyLine(trackSampledPoints);
+#endif
         }
 
         private Quaternion[] GenerateRotations(Transform a, Transform b, Vector3[] points)
@@ -123,12 +125,15 @@ namespace Race
 
         private Vector3[] GenerateBezierPoints(CurvedTrackPoint a, CurvedTrackPoint b, int division)
         {
+#if UNITY_EDITOR
             return Handles.MakeBezierPoints(
                  a.transform.position,
                  b.transform.position,
                  a.transform.position + a.transform.forward * a.GetLength(),
                  b.transform.position - b.transform.forward * b.GetLength(),
                  division);
+#endif
+            return new Vector3[0];
         }
 
         private void DrawBezierCurve()
@@ -146,7 +151,8 @@ namespace Race
 
         private void DrawTrackPartGizmo(CurvedTrackPoint a, CurvedTrackPoint b)
         {
-            Handles.DrawBezier(
+#if UNITY_EDITOR
+             Handles.DrawBezier(
                a.transform.position,
                b.transform.position,
                a.transform.position + a.transform.forward * a.GetLength(),
@@ -154,6 +160,7 @@ namespace Race
                Color.green,
                Texture2D.whiteTexture,
                1.0f);
+#endif
         }
 
         public override Vector3 GetDirection(float distance)

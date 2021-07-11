@@ -77,13 +77,16 @@ namespace Race
                     trackSampledLength += segmentLength;
                 }
             }
-
+#if UNITY_EDITOR
             EditorUtility.SetDirty(this);
+#endif
         }
 
         private void DrawSampledTrackPoints()
         {
+#if UNITY_EDITOR
             Handles.DrawAAPolyLine(trackSampledPoints);
+#endif
         }
 
         private Quaternion[] GenerateRotations(Vector3[] points)
@@ -113,7 +116,9 @@ namespace Race
 
         private void DrawRound()
         {
+#if UNITY_EDITOR
             Handles.DrawWireDisc(circleCenter, Vector3.up, circleRadius);
+#endif
         }
 
         public override Vector3 GetDirection(float distance)
