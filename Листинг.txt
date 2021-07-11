@@ -1,0 +1,1627 @@
+ [System.Serializable]
+    public class BikeParameters
+    {
+        public GameObject engineModel;
+        public GameObject hullModel;
+
+        [Range(0.0f, 10.0f)] public float mass;
+        [Range(0.0f, 100.0f)] public float thrust;
+        [Range(0.0f, 100.0f)] public float agility;
+        [Range(0.0f, 1.0f)] public float linearDrag;
+        [Range(0.0f, 1.0f)] public float rotationDrag;
+        [Range(0.0f, 1.0f)] public float collisionBounceFactor;
+
+        public readonly float maxRollAngle = 360.0f;
+
+        public bool afterburner;
+        public float maxSpeed;
+        public float maxRotationSpeed;
+        public float afterburnerThrust;
+        public float afterburnerMaxSpeedBonus;
+        public float afterburnerHeatGeneration;
+        public float afterburnerMaxHeat;
+        public float afterburnerCoolSpeed;
+    }
+
+    public class Bike : MonoBehaviour
+    {
+        public static readonly string Tag = "Bike";
+        [SerializeField] private AudioSource collisionSfx;
+        [SerializeField] private AnimationCurve collisionVolumeCurve;
+        [SerializeField] private BikeParameters bikeParameters;
+        [SerializeField] private BikeViewController bikeViewController;
+        [SerializeField] private RaceTrack track;
+        [SerializeField] private bool isPlayerBike;
+        private float forwardThrustAxis;
+        private float horizontalThrustAxis;
+        private float distance;
+        private float velocity;
+        private float rotationVelocity;
+        private float rollAngle;
+        private float afterburnerHeat;
+        private float prevDistance;
+        private float fuel;
+        private float lapTime;
+        private float startLapTime;
+
+        private float currentLap = 1;
+
+        public bool IsPlayerBike => isPlayerBike;
+
+        public bool IsMovementControlsActive { get; set; }
+
+
+        public bool EnableAfterburner { get; set; }
+
+
+        public float GetDistance()
+        {
+            return distance;
+        }
+
+        public float GetVelocity()
+        {
+            return velocity;
+        }
+
+        public float GetRollAngle()
+        {
+            return rollAngle;
+        }
+
+        public float GetNormalizedHeat()
+        {
+            if (bikeParameters.afterburnerMaxHeat > 0)
+                return afterburnerHeat / bikeParameters.afterburnerMaxHeat;
+
+            return 0;
+        }
+
+        public float GetPrevDistance()
+        {
+            return prevDistance;
+        }
+
+        public float GetFuel()
+        {
+            return fuel;
+        }
+        public RaceTrack GetTrack()
+        {
+            return track;
+        }
+
+        private void Update()
+        {
+            UpdateAfterburnerHeat();
+            UpdateBikePhysics();
+            UpdateBestLapTime();
+        }
+
+        private void UpdateAfterburnerHeat()
+        {
+            afterburnerHeat -= bikeParameters.afterburnerCoolSpeed * Time.deltaTime;
+
+            if (afterburnerHeat < 0)
+                afterburnerHeat = 0;
+
+            //Check max heat
+            //***
+
+        }
+
+        public void CoolAfterburner()
+        {
+            afterburnerHeat = 0;
+        }
+
+        public float GetNormalizedSpeed()
+        {
+            return Mathf.Clamp01(velocity / bikeParameters.maxSpeed);
+        }
+
+        private void UpdateBikePhysics()
+        {
+            float dt = Time.deltaTime;
+
+            float FthrustMax = bikeParameters.thrust;
+            float Vmax = bikeParameters.maxSpeed;
+            float F = forwardThrustAxis * bikeParameters.thrust;
+
+            if (EnableAfterburner && ConsumeFuelForAfterburner(1.0f * Time.deltaTime))
+            {
+                afterburnerHeat += bikeParameters.afterburnerHeatGeneration * Time.deltaTime;
+
+                F += bikeParameters.afterburnerThrust;
+                Vmax += bikeParameters.afterburnerMaxSpeedBonus;
+                FthrustMax += bikeParameters.afterburnerThrust;
+            }
+
+            F += -velocity * (FthrustMax / Vmax);
+
+            float dv = dt * F;
+
+            velocity += dv;
+
+            if (bikeStatistics.TopSpeed < Mathf.Abs(velocity))
+                bikeStatistics.TopSpeed = Mathf.Abs(velocity);
+
+            float ds = velocity * dt;
+
+            if (Physics.Raycast(transform.position, transform.forward, ds))
+            {
+                collisionSfx.volume = collisionVolumeCurve.Evaluate(GetNormalizedSpeed());
+                collisionSfx.Play();
+
+                velocity = -velocity * bikeParameters.collisionBounceFactor;
+                ds = velocity * dt;
+
+                afterburnerHeat += bikeParameters.afterburnerHeatGeneration;   
+            }
+
+            prevDistance = distance;
+
+            distance += ds;
+            if (distance < 0)
+                distance = 0;
+
+
+            rotationVelocity = dt * horizontalThrustAxis * bikeParameters.agility;
+            rollAngle += rotationVelocity;
+            rollAngle += -rollAngle * bikeParameters.rotationDrag * dt;
+           // rotationVelocity += dt * horizontalThrustAxis * bikeParameters.agility;
+
+           // rotationVelocity = Mathf.Clamp(rotationVelocity, -bikeParameters.maxRotationSpeed, bikeParameters.maxRotationSpeed);
+           /// rotationVelocity += -rotationVelocity * bikeParameters.rotationDrag * dt;
+           // rollAngle += rotationVelocity * dt;
+
+
+            if (rollAngle < 0)
+                rollAngle = 360 + rollAngle;
+            if (rollAngle > 360)
+                rollAngle = rollAngle - 360;
+
+            SetBikePosition();
+        }
+
+        private void SetBikePosition()
+        {
+            Vector3 bikePos = track.GetPosition(distance);
+            Vector3 bikeDir = track.GetDirection(distance);
+
+            Quaternion q = Quaternion.AngleAxis(rollAngle, Vector3.forward);
+            Vector3 trackOffset = q * (Vector3.up * track.Radius);
+
+            // transform.position = bikePos - trackOffset;
+            // transform.rotation = Quaternion.LookRotation(bikeDir, trackOffset);
+
+            transform.position = bikePos;
+            transform.rotation = track.GetRotation(distance);
+            transform.Rotate(Vector3.forward, rollAngle, Space.Self);
+            transform.Translate(-Vector3.up * track.Radius, Space.Self);
+
+        }
+
+        private void UpdateBestLapTime()
+        {
+            int lap = (int)(distance / track.GetTrackLength()) + 1; //номер круга
+            if (lap > currentLap ) // если увеличился номер круга
+            {
+                currentLap++;
+                lapTime = Time.time - startLapTime;
+                startLapTime = Time.time;
+
+                if (lapTime < bikeStatistics.BestLapTime || bikeStatistics.BestLapTime ==0)
+                    bikeStatistics.BestLapTime = lapTime;
+            }  
+        }
+
+        public void SetForwardThrustAxis(float val)
+        {
+            forwardThrustAxis = val;
+        }
+
+        public void SetHorizontalThrustAxis(float val)
+        {
+            horizontalThrustAxis = val;
+        }
+
+        public bool ConsumeFuelForAfterburner(float amount)
+        {
+            if (fuel <= amount)
+                return false;
+
+            fuel -= amount;
+
+            return true;
+        }
+
+        public void AddFuel(float amount)
+        {
+            fuel += amount;
+            fuel = Mathf.Clamp(fuel, 0.0f, 100.0f);
+        }
+
+        public void ReduceSpeed(float amount)
+        {
+            velocity -= amount;
+            if (velocity < 0)
+                velocity = 0;
+        }
+
+        public class BikeStatistics
+        {
+            public float TopSpeed;
+            public float TotalTime;
+            public float BestLapTime;
+            public int RacePlace;
+        }
+
+        private BikeStatistics bikeStatistics;
+        public BikeStatistics Statistics => bikeStatistics;
+
+        private void Awake()
+        {
+            bikeStatistics = new BikeStatistics();
+        }
+
+        private float raceStartTime;
+
+        public void OnRaceStart()
+        {
+            raceStartTime = Time.time;
+            startLapTime = raceStartTime;
+        }
+
+        public void OnRaceEnd()
+        {
+            bikeStatistics.TotalTime = Time.time - raceStartTime;
+        }
+
+    }
+
+ public class BikeHudViewController : MonoBehaviour
+    {
+        [SerializeField] private Text labelSpeed;
+        [SerializeField] private Text labelDistance;
+        [SerializeField] private Text labelRollAngle;
+        [SerializeField] private Text labelLapNumber;
+        [SerializeField] private Text labelHeat;
+        [SerializeField] private Text labelFuel;
+
+        [SerializeField] private Bike bike;
+
+        private void Update()
+        {
+            int velocity = (int)bike.GetVelocity();
+            int distance = (int)bike.GetDistance();
+            int roll = (int)bike.GetRollAngle();
+            int laps = (int)(bike.GetDistance() / bike.GetTrack().GetTrackLength());
+            int heat = (int)(bike.GetNormalizedHeat() * 100.0f);
+            int fuel = (int)bike.GetFuel();
+            labelSpeed.text = "Speed: " + velocity + " m/s";
+            labelDistance.text = "Distance: " + distance + " m";
+            labelRollAngle.text = "Angle: " + roll + " deg";
+            labelLapNumber.text = "Lap: " + (laps + 1);
+            labelHeat.text = "Heat: " + heat;
+            labelFuel.text = "Fuel: " + fuel;
+        }
+    }
+
+public class CameraController : MonoBehaviour
+    {
+        [SerializeField] private Bike targetBike;
+        [SerializeField] private float minFov = 60;
+        [SerializeField] private float maxFov =85;
+        [SerializeField] private float shakeFactor;
+        [SerializeField] private AnimationCurve shakeCurve;
+
+        private Vector3 initialLocalPosition;
+        private void Start()
+        {
+            initialLocalPosition = Camera.main.transform.localPosition;
+        }
+
+        private void Update()
+        {
+            UpdateFov();
+            UpdateShake();
+        }
+
+        private void UpdateFov()
+        {
+            var cam = Camera.main;
+            var t = targetBike.GetNormalizedSpeed();
+
+            cam.fieldOfView = Mathf.Lerp(minFov, maxFov, t);
+        }
+
+        private void UpdateShake()
+        {
+            if (Time.timeScale > 0)
+            {
+                var cam = Camera.main;
+                var t = targetBike.GetNormalizedSpeed();
+                var curveValue = shakeCurve.Evaluate(t);
+
+                var randomVector = UnityEngine.Random.insideUnitSphere * shakeFactor;
+                randomVector.z = 0;
+
+                cam.transform.localPosition = initialLocalPosition + randomVector * curveValue;
+            }
+        }
+    }
+
+public class ComplexEngineSfxController : MonoBehaviour
+    {
+        [SerializeField] private Bike bike;
+
+        [SerializeField] private AudioSource sfxLow;
+        [SerializeField] private AudioSource sfxHigh;
+        [SerializeField] private AudioSource sfxLoud;
+
+        [SerializeField] private AnimationCurve curveLow;
+        [SerializeField] private AnimationCurve curveHigh;
+        [SerializeField] private AnimationCurve curveLoud;
+
+        [SerializeField] private AudioSource sfxSonicBoom;
+
+        public const float PitchFactor = 2f;
+        [SerializeField] private float superSonicSpeed;
+        [SerializeField] private AnimationCurve curveSonic;
+
+        public bool IsSuperSonic { get; private set; }
+
+        private void Update()
+        {
+            SetSuperSonic(Mathf.Abs(bike.GetVelocity()) > superSonicSpeed);
+
+            if(sfxSonicBoom.isPlaying)
+            {
+                var t = Mathf.Clamp01(sfxSonicBoom.time / sfxSonicBoom.clip.length);
+                sfxSonicBoom.volume = curveSonic.Evaluate(t);
+            }
+
+            UpdateDynamicEngineSound();
+        }
+
+        private void UpdateDynamicEngineSound()
+        {
+            if(IsSuperSonic)
+            {
+                sfxLow.volume = 0;
+                sfxHigh.volume = 0;
+                sfxLoud.volume = 0;
+                return;
+            }
+
+            // var t = bike.GetNormalizedSpeed();
+            var t = Mathf.Clamp01(bike.GetVelocity() / superSonicSpeed);
+
+            sfxLow.volume = curveLow.Evaluate(t);
+
+            sfxLow.pitch = 1.0f + PitchFactor * t;
+
+            sfxHigh.volume = curveHigh.Evaluate(t);
+
+            sfxHigh.pitch = 1.0f + PitchFactor * t;
+
+            sfxLoud.volume = curveLoud.Evaluate(t);
+        }
+
+        public void SetSuperSonic(bool flag)
+        {
+            if(!IsSuperSonic && flag)
+            {
+                sfxSonicBoom.Play();
+            }
+            IsSuperSonic = flag;
+        }
+    }
+
+ public class CountdownViewController : MonoBehaviour
+    {
+        [SerializeField] private RaceController raceController;
+        [SerializeField] private Text label;
+
+        private void Update()
+        {
+            int t = (int)raceController.CountTimer;
+            if (t > 0)
+            {
+                label.text = t.ToString();
+            }
+            else if (t == 0)
+            {
+                label.text = "GO!";
+            }
+            else
+            {
+                label.text = "";
+                 gameObject.SetActive(false);
+            }
+        }
+    }
+
+public class CurvedTrackPoint : MonoBehaviour
+    {
+        [SerializeField] private float length = 1.0f;
+
+        public float GetLength()
+        {
+            return length;
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawSphere(transform.position, 3.0f);
+        }
+    }
+
+ public class EngineSfxController : MonoBehaviour
+    {
+        [SerializeField] private AudioSource engineSource;
+        [SerializeField] private Bike bike;
+        [Range(0.0f, 1.0f)] [SerializeField] private float velocityPitchModifier;
+
+        private void Update()
+        {
+            UpdateEngineSoundSimple();
+        }
+
+        private void UpdateEngineSoundSimple()
+        {
+            engineSource.pitch = 1.0f + velocityPitchModifier* bike.GetNormalizedSpeed();
+        }
+    }
+
+public class MainMenuViewController : MonoBehaviour
+    {
+        [SerializeField] private TrackSelectionViewController trackSelectionViewController;
+        [SerializeField] private OptionsViewController optionsViewController;
+
+
+
+        public void OnButtonNewGame()
+        {
+            trackSelectionViewController.gameObject.SetActive(true);
+
+            gameObject.SetActive(false);
+        }
+
+        public void OnButtonOptions()
+        {
+            optionsViewController.gameObject.SetActive(true);
+
+            gameObject.SetActive(false);
+        }
+
+        public void OnButtonExit()
+        {
+            Application.Quit();
+        }
+
+    }
+
+
+public class ObjectPlacer : MonoBehaviour
+    {
+        [SerializeField] private GameObject prefab;
+        [SerializeField] private int numObjects;
+        [SerializeField] private RaceTrack track;
+
+        [SerializeField] private bool randomizeRotation;
+        [SerializeField] private bool randomizePosition;
+        [SerializeField] private int seed;
+
+        private void Start()
+        {
+            float position = 0;
+            Random.InitState(seed);
+
+            for (int i = 0; i < numObjects; i++)
+            {
+                if (randomizePosition)
+                {
+                    position = Random.value * track.GetTrackLength();
+                    InstantiateObject(position);
+                }
+                else
+                {
+                    InstantiateObject(position);
+                    position += track.GetTrackLength() / numObjects;
+                }
+            }
+
+        }
+
+        private void InstantiateObject(float position)
+        {
+            var e = Instantiate(prefab);
+
+            e.transform.position = track.GetPosition(position);
+            e.transform.rotation = track.GetRotation(position);
+
+            if (randomizeRotation)
+            {
+                e.transform.Rotate(Vector3.forward, UnityEngine.Random.Range(0, 360), Space.Self);
+            }
+        }
+    }
+
+public class Obstacle : MonoBehaviour
+    {
+        [SerializeField] private RaceTrack track;
+        [SerializeField] private float rollAngle;
+        [SerializeField] private float distance;
+        [SerializeField] private float rotationSpeed;
+        [SerializeField] private float maxRollAngle = 360.0f;
+        [SerializeField] [Range(0.0f, 20.0f)] private float radiusModifier=1;
+
+        private void Update()
+        {
+            UpdateObstacleRotation();
+        }
+
+        private void OnValidate()
+        {
+            SetObstaclePosition();
+        }
+
+        private void SetObstaclePosition()
+        {
+            Vector3 obstaclePos = track.GetPosition(distance);
+            Vector3 obstacleDir = track.GetDirection(distance);
+
+            Quaternion q = Quaternion.AngleAxis(rollAngle, Vector3.forward);
+            Vector3 trackOffset = q * (Vector3.up * radiusModifier * track.Radius);
+
+            transform.position = obstaclePos - trackOffset;
+            transform.rotation = Quaternion.LookRotation(obstacleDir, trackOffset);
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            Vector3 centerLinePos = track.GetPosition(distance);
+            Gizmos.DrawSphere(centerLinePos, track.Radius);
+        }
+
+        private void UpdateObstacleRotation()
+        {
+            float dt = Time.deltaTime;
+            rollAngle += dt * rotationSpeed;
+
+            rollAngle = rollAngle % maxRollAngle;
+
+            SetObstaclePosition();
+        }
+    }
+
+public class OptionsViewController : MonoBehaviour
+    {
+        [SerializeField] private Dropdown screenResolution;
+        [SerializeField] private List<string> screenResolutionsList = new List<string> { "640x480", "800x600", "1920x1080"};
+      
+
+        private void Awake()
+        {
+            gameObject.SetActive(false);
+            screenResolution.AddOptions(screenResolutionsList);
+            SetScreenResolution();
+        }
+
+        public void OnButtonApply()
+        {
+            SetScreenResolution();
+
+            UnityEngine.SceneManagement.SceneManager.LoadScene(PauseViewController.MainMenuScene);
+        }
+
+        private void SetScreenResolution()
+        {
+            string value = screenResolution.captionText.text;
+            string[] sizes = value.Split('x');
+            int width = System.Convert.ToInt32(sizes[0]);
+            int height = System.Convert.ToInt32(sizes[0]);
+            Screen.SetResolution(width, height, false);
+        }
+    }
+
+public class PauseViewController : MonoBehaviour
+    {
+        public static readonly string MainMenuScene = "MainMenuScene";
+        [SerializeField] private RectTransform content;
+        [SerializeField] private RaceController raceController;
+
+        private void Start()
+        {
+            content.gameObject.SetActive(false);
+        }
+
+        private void Update()
+        {
+            if(Input.GetKeyDown(KeyCode.Space))
+            {
+                if (raceController.IsRaceActive)
+                {
+                    content.gameObject.SetActive(!content.gameObject.activeInHierarchy);
+
+                    UpdateGameActivity(!content.gameObject.activeInHierarchy);
+                }
+            }
+
+           
+        }
+
+        private void UpdateGameActivity(bool flag)
+        {
+            if(flag)
+            {
+                Time.timeScale = 1;
+            }
+            else
+            {
+                Time.timeScale = 0;
+            }
+        }
+
+        public void OnButtonContinue()
+        {
+            UpdateGameActivity(true);
+            content.gameObject.SetActive(false);
+        }
+
+        public void OnButtonEndRace()
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(MainMenuScene);
+        }
+
+    }
+
+public class Player : MonoBehaviour
+    {
+        [SerializeField] private string nickname;
+
+        public string Nickname => nickname;
+
+        [SerializeField] private Bike activeBike;
+
+        private void Update()
+        {
+            ControlBike();
+        }
+
+        private void ControlBike()
+        {
+            activeBike.SetForwardThrustAxis(0);
+            activeBike.SetHorizontalThrustAxis(0);
+
+            if (!activeBike.IsMovementControlsActive)
+                return;
+
+            if(Input.GetKey(KeyCode.W))
+            {
+                activeBike.SetForwardThrustAxis(1);
+            }
+
+            if (Input.GetKey(KeyCode.S))
+            {
+                activeBike.SetForwardThrustAxis(-1);
+            }
+
+            if (Input.GetKey(KeyCode.A))
+            {
+                activeBike.SetHorizontalThrustAxis(-1);
+            }
+
+            if (Input.GetKey(KeyCode.D))
+            {
+                activeBike.SetHorizontalThrustAxis(1);
+            }
+
+            activeBike.EnableAfterburner = Input.GetKey(KeyCode.Space);
+           
+        }
+
+    }
+
+ public abstract class Powerup : MonoBehaviour
+    {
+        [SerializeField] private RaceTrack track;
+        [SerializeField] [Range(0.0f, 360.0f)] private float rollAngle;
+        [SerializeField] private float distance;
+        [SerializeField] private float offsetAngle = 10.0f;
+        [SerializeField] private AudioSource audioSource;
+        //[SerializeField] private float radiusModifier = 1;
+
+
+        private void Update()
+        {
+            UpdateBikes();
+        }
+
+        private void UpdateBikes()
+        {
+            foreach (GameObject bikeGameObject in GameObject.FindGameObjectsWithTag(Bike.Tag))
+            {
+                Bike bike = bikeGameObject.GetComponent<Bike>();
+                float prevDistance = bike.GetPrevDistance();
+                float currDistance = bike.GetDistance();
+
+                if (prevDistance < distance && currDistance > distance)
+                {
+                    //limit angles
+                    float bikeRollAngle = bike.GetRollAngle();
+                    
+                    float leftBorder = rollAngle - offsetAngle;
+                    float rightBorder = rollAngle + offsetAngle;
+
+                    if (bikeRollAngle > leftBorder && bikeRollAngle < rightBorder)
+                    {
+                        OnPickedByBike(bike);
+                        audioSource.volume = 10;
+                        audioSource.Play();
+                    }
+                }
+            }
+        }
+
+        public abstract void OnPickedByBike(Bike bike);
+
+
+        private void OnValidate()
+        {
+            SetPowerupPosition();
+        }
+
+        private void SetPowerupPosition()
+        {
+            Vector3 powerupPos = track.GetPosition(distance);
+            Vector3 powerupDir = track.GetDirection(distance);
+           
+            Quaternion q = Quaternion.AngleAxis(rollAngle, Vector3.forward);
+            //    Vector3 trackOffset = q * (Vector3.up * 0);
+
+            Vector3 trackOffset = q * (Vector3.up * track.Radius);
+
+            transform.position = powerupPos - trackOffset;
+            transform.rotation = Quaternion.LookRotation(powerupDir, trackOffset);
+        }
+    }
+
+public class PowerupCoolant : Powerup
+    {
+        public override void OnPickedByBike(Bike bike)
+        {
+            bike.CoolAfterburner();
+        }
+    }
+
+public class PowerupFuel : Powerup
+    {
+        [Range(0.0f, 100.0f)]
+        [SerializeField] private float fuelAmount;
+        public override void OnPickedByBike(Bike bike)
+        {
+            bike.AddFuel(fuelAmount);
+        }
+    }
+
+public class PowerupSpeedDown : Powerup
+    {
+        [Range(0.0f, 100.0f)]
+        [SerializeField] private float speedAmount;
+        public override void OnPickedByBike(Bike bike)
+        {
+            bike.ReduceSpeed(speedAmount);
+        }
+    }
+
+public abstract class RaceCondition : MonoBehaviour
+    {
+        public bool IsTriggered { get; protected set; }
+
+        public virtual void OnRaceStart()
+        {
+
+        }
+
+        public virtual void OnRaceEnd()
+        {
+
+        }
+    }
+
+ public class RaceConditionLaps : RaceCondition
+    {
+        [SerializeField] private RaceController raceController;
+
+        private void Update()
+        {
+            if (!raceController.IsRaceActive && IsTriggered)
+                return;
+
+            Bike[] bikes = raceController.Bikes;
+
+            foreach(Bike bike in bikes)
+            {
+                int laps = (int)(bike.GetDistance() / bike.GetTrack().GetTrackLength());
+                if (laps < raceController.MaxLaps)
+                    return;
+            }
+
+            IsTriggered = true;
+        }
+    }
+
+ public class RaceController : MonoBehaviour
+    {
+        public enum RaceMode
+        {
+            Laps,
+            Time,
+            LastStanding
+        }
+
+        [SerializeField] private int maxLaps;
+        [SerializeField] private RaceMode raceMode;
+        [SerializeField] private UnityEvent eventRaceStart;
+        [SerializeField] private UnityEvent eventRaceFinished;
+        [SerializeField] private Bike[] bikes;
+        [SerializeField] private int countdownTimer;
+        [SerializeField] private RaceCondition[] conditions;
+        [SerializeField] private RaceTrack track;
+        [SerializeField] private RaceResultsViewController raceResultsViewController;
+        private float countTimer;
+        private List<Bike> activeBikes;
+        private List<Bike> finishedBikes;
+
+        public int MaxLaps => maxLaps;
+        public Bike[] Bikes => bikes;
+        public int CountdownTimer => countdownTimer;
+        public float CountTimer => countTimer;
+        public bool IsRaceActive { get; private set; }
+
+        private void Start()
+        {
+            StartRace();
+        }
+
+        private void Update()
+        {
+            if (!IsRaceActive)
+                return;
+
+            UpdateBikeRacePositions();
+            UpdateRacePrestart();
+            UpdateConditions();
+        }
+
+        public  void StartRace()
+        {
+            activeBikes = new List<Bike>(bikes);
+            finishedBikes = new List<Bike>();
+
+            IsRaceActive = true;
+
+            countTimer = countdownTimer;
+
+            foreach(RaceCondition condition in conditions)
+                condition.OnRaceStart();
+
+            foreach (Bike bike in bikes)
+                bike.OnRaceStart();
+
+            eventRaceStart?.Invoke();
+            
+        }
+
+        public void EndRace()
+        {
+            IsRaceActive = false;
+
+            foreach (RaceCondition condition in conditions)
+            {
+                condition.OnRaceEnd();
+            }
+
+            eventRaceFinished?.Invoke();
+        }
+
+        private void UpdateRacePrestart()
+        {
+            if (countTimer > -1)
+            {
+                countTimer -= Time.deltaTime;
+
+                if (countTimer < 0)
+                {
+                    foreach (Bike bike in bikes)
+                        bike.IsMovementControlsActive = true;
+                }
+            }
+        }
+
+        private void UpdateConditions()
+        {
+            if (IsRaceActive)
+                return;
+
+            foreach(RaceCondition condition in conditions)
+            {
+                if (!condition.IsTriggered)
+                    return;
+
+            }
+
+            EndRace();
+        }
+
+        private void UpdateBikeRacePositions()
+        {
+            //if(activeBikes.Count == 0)
+            //{
+            //    EndRace();
+            //    return;
+            //}
+
+            foreach(Bike bike in activeBikes)
+            {
+                if (finishedBikes.Contains(bike))
+                    continue;
+
+                float dist = bike.GetDistance();
+                float totalRaceDistance = maxLaps * track.GetTrackLength();
+
+                if(dist > totalRaceDistance)
+                {
+                    finishedBikes.Add(bike);
+                    bike.Statistics.RacePlace = finishedBikes.Count;
+                    bike.OnRaceEnd();
+
+                    if(bike.IsPlayerBike)
+                    {
+                        raceResultsViewController.Show(bike.Statistics);
+                    }
+                }
+            }
+        }
+    }
+
+public class RaceResultsViewController : MonoBehaviour
+    {
+        [SerializeField] private Text place;
+        [SerializeField] private Text topSpeed;
+        [SerializeField] private Text totalTime;
+        [SerializeField] private Text bestLapTime;
+
+        private void Awake()
+        {
+            gameObject.SetActive(false);
+        }
+
+        public void Show(Bike.BikeStatistics stats)
+        {
+            gameObject.SetActive(true);
+
+            place.text = "Place: " + stats.RacePlace.ToString();
+            topSpeed.text = "Top speed: " + ((int)(stats.TopSpeed)).ToString() + " m/s";
+            totalTime.text = "Total time: " +  stats.TotalTime.ToString() + " seconds";
+            bestLapTime.text = "Best lap time: " + stats.BestLapTime.ToString() + " seconds";
+
+        }
+
+        public void OnButtonQuit()
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(PauseViewController.MainMenuScene);
+        }
+    }
+
+
+ public abstract class RaceTrack : MonoBehaviour
+    {
+        [Header("Base track properties")]
+        [SerializeField] private float radius;
+        
+        public float Radius => radius;
+        public abstract float GetTrackLength();
+
+        public abstract Vector3 GetPosition(float distance);
+
+        public abstract Vector3 GetDirection(float distance);
+
+        public virtual Quaternion GetRotation(float distance)
+        {
+            return Quaternion.identity;
+        }
+    }
+
+#if UNITY_EDITOR
+
+    [CustomEditor(typeof(RaceTrackCurved))]
+    public class RaceTrackCurvedEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            if (GUILayout.Button("Generate"))
+            {
+                (target as RaceTrackCurved).GenerateTrackData();
+            }
+        }
+    }
+#endif
+    public class RaceTrackCurved : RaceTrack
+    {
+
+        [SerializeField] private CurvedTrackPoint[] trackPoints;
+        [SerializeField] private int division;
+        [SerializeField] private Quaternion[] trackSampledRotations;
+        [SerializeField] private Vector3[] trackSampledPoints;
+        [SerializeField] private float[] trackSampledSegmentLengths;
+        [SerializeField] private float trackSampledLength;
+        [SerializeField] private bool debugDrawBezier;
+        [SerializeField] private bool debugDrawSampledPoints;
+        [SerializeField] private TrackDescription trackDescription;
+      
+        public CurvedTrackPoint[] TrackPoints => trackPoints;
+
+        private void OnDrawGizmos()
+        {
+            if (debugDrawBezier)
+                  DrawBezierCurve();
+                if (debugDrawSampledPoints)
+               DrawSampledTrackPoints();
+        }
+
+        public void GenerateTrackData()
+        {
+            Debug.Log("Generate");
+
+            if (trackPoints.Length < 3)
+                return;
+
+            List<Vector3> points = new List<Vector3>();
+            List<Quaternion> rotations = new List<Quaternion>();
+
+            for (int i = 0; i < trackPoints.Length - 1; i++)
+            {
+                var newPoints = GenerateBezierPoints(trackPoints[i], trackPoints[i + 1], division);
+                var newRotations = GenerateRotations(trackPoints[i].transform, trackPoints[i + 1].transform, newPoints);
+
+                points.AddRange(newPoints);
+                rotations.AddRange(newRotations); 
+            }
+
+            var lastPoints = GenerateBezierPoints(trackPoints[trackPoints.Length - 1], trackPoints[0], division);
+            var lastRotations = GenerateRotations(trackPoints[trackPoints.Length - 1].transform, trackPoints[0].transform, lastPoints);
+
+            points.AddRange(lastPoints);
+            rotations.AddRange(lastRotations);
+
+            trackSampledRotations = rotations.ToArray();
+            trackSampledPoints = points.ToArray();
+
+            {
+                trackSampledSegmentLengths = new float[trackSampledPoints.Length - 1];
+                trackSampledLength = 0;
+
+                for (int i = 0; i < trackSampledPoints.Length - 1; i++)
+                {
+                    Vector3 a = trackSampledPoints[i];
+                    Vector3 b = trackSampledPoints[i + 1];
+
+                    float segmentLength = (b - a).magnitude;
+                    trackSampledSegmentLengths[i] = segmentLength;
+                    trackSampledLength += segmentLength;
+                }
+            }
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(this);
+#endif
+            trackDescription.TrackLength = trackSampledLength;
+        }
+
+        private void DrawSampledTrackPoints()
+        {
+#if UNITY_EDITOR
+            Handles.DrawAAPolyLine(trackSampledPoints);
+#endif
+        }
+
+        private Quaternion[] GenerateRotations(Transform a, Transform b, Vector3[] points)
+        {
+            List<Quaternion> rotations = new List<Quaternion>();
+            float t = 0;
+
+            for(int i=0; i< points.Length-1; i++)
+            {
+                Vector3 dir = (points[i + 1] - points[i]).normalized;
+                Vector3 up = Vector3.Lerp(a.up, b.up, t);
+
+                Quaternion rotation = Quaternion.LookRotation(dir, up);
+
+                rotations.Add(rotation);
+
+                t += 1.0f / (points.Length - 1);
+            }
+
+            rotations.Add(b.rotation);
+
+            return rotations.ToArray();
+        }
+
+        private Vector3[] GenerateBezierPoints(CurvedTrackPoint a, CurvedTrackPoint b, int division)
+        {
+#if UNITY_EDITOR
+            return Handles.MakeBezierPoints(
+                 a.transform.position,
+                 b.transform.position,
+                 a.transform.position + a.transform.forward * a.GetLength(),
+                 b.transform.position - b.transform.forward * b.GetLength(),
+                 division);
+#endif
+            return new Vector3[0];
+        }
+
+        private void DrawBezierCurve()
+        {
+            if (trackPoints.Length < 3)
+                return;
+
+            for (int i = 0; i < trackPoints.Length - 1; i++)
+            {
+                DrawTrackPartGizmo(trackPoints[i], trackPoints[i + 1]);
+            }
+
+            DrawTrackPartGizmo(trackPoints[trackPoints.Length - 1], trackPoints[0]);
+        }
+
+        private void DrawTrackPartGizmo(CurvedTrackPoint a, CurvedTrackPoint b)
+        {
+#if UNITY_EDITOR
+             Handles.DrawBezier(
+               a.transform.position,
+               b.transform.position,
+               a.transform.position + a.transform.forward * a.GetLength(),
+               b.transform.position - b.transform.forward * b.GetLength(),
+               Color.green,
+               Texture2D.whiteTexture,
+               1.0f);
+#endif
+        }
+
+        public override Vector3 GetDirection(float distance)
+        {
+            distance = Mathf.Repeat(distance, trackSampledLength);
+
+            for (int i = 0; i < trackSampledSegmentLengths.Length; i++)
+            {
+                float diff = distance - trackSampledSegmentLengths[i];
+                if (diff < 0)
+                {
+                    return (trackSampledPoints[i + 1] - trackSampledPoints[i]).normalized;
+                }
+                else
+                {
+                    distance -= trackSampledSegmentLengths[i];
+                }
+            }
+            return Vector3.forward;
+        }
+
+        public override Vector3 GetPosition(float distance)
+        {
+            distance = Mathf.Repeat(distance, trackSampledLength);
+
+            for(int i=0; i< trackSampledSegmentLengths.Length; i++)
+            {
+                float diff = distance - trackSampledSegmentLengths[i];
+                if(diff <0)
+                {
+                    float t = distance / trackSampledSegmentLengths[i];
+                    return Vector3.Lerp(trackSampledPoints[i], trackSampledPoints[i + 1], t);
+                }
+                else
+                {
+                    distance -= trackSampledSegmentLengths[i];
+                }
+            }
+
+            return Vector3.zero;
+        }
+        public override Quaternion GetRotation(float distance)
+        {
+            distance = Mathf.Repeat(distance, trackSampledLength);
+
+            for (int i = 0; i < trackSampledSegmentLengths.Length; i++)
+            {
+                float diff = distance - trackSampledSegmentLengths[i];
+                if (diff < 0)
+                {
+                    float t = distance / trackSampledSegmentLengths[i];
+                    return Quaternion.Slerp(trackSampledRotations[i], trackSampledRotations[i + 1], t);
+                }
+                else
+                {
+                    distance -= trackSampledSegmentLengths[i];
+                }
+            }
+
+            return Quaternion.identity;
+        }
+
+        public override float GetTrackLength()
+        {
+            return trackSampledLength;
+        }
+    }
+
+ public class RaceTrackLinear : RaceTrack
+    {
+        [Header("Linear track properties")]
+        [SerializeField] private Transform start;
+        [SerializeField] private Transform end;
+        public override Vector3 GetDirection(float distance)
+        {
+            distance = Mathf.Clamp(distance, 0, GetTrackLength());
+            return (end.position - start.position).normalized;
+        }
+
+        public override Vector3 GetPosition(float distance)
+        {
+            distance = Mathf.Clamp(distance, 0, GetTrackLength());
+
+            Vector3 direction = end.position - start.position;
+            direction = direction.normalized;
+
+            return start.position + direction * distance;
+        }
+
+        public override float GetTrackLength()
+        {
+            Vector3 direction = end.position - start.position;
+            return direction.magnitude;
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(start.position, end.position);
+        }
+
+        #region Test
+
+        [SerializeField] private float testDistance;
+        [SerializeField] private Transform testObject;
+        [SerializeField] [Range(-10, 10)] private float speed;
+
+        private void OnValidate()
+        {
+            testObject.position = GetPosition(testDistance);
+            testObject.forward = GetDirection(testDistance);
+        }
+
+        public void Update()
+        {
+            MoveTestObject();
+        }
+
+        private void MoveTestObject()
+        {
+            testDistance += speed * Time.deltaTime;
+
+            if (testDistance > GetTrackLength())
+                testDistance = 0;
+            else if (testDistance < 0)
+                testDistance = GetTrackLength();
+
+            testObject.position = GetPosition(testDistance);
+            testObject.forward = GetDirection(testDistance);
+        }
+
+
+        #endregion
+    }
+
+#if UNITY_EDITOR
+
+    [CustomEditor(typeof(RaceTrackRound))]
+    public class RaceTrackRoundEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            if (GUILayout.Button("Generate"))
+            {
+                (target as RaceTrackRound).GenerateTrackData();
+            }
+        }
+    }
+#endif
+    public class RaceTrackRound : RaceTrack
+    {
+        [SerializeField] private float circleRadius;
+        [SerializeField] private Vector3 circleCenter;
+        //[SerializeField] private Vector3 circleNormal;
+        [SerializeField] private int division;
+        [SerializeField] private Quaternion[] trackSampledRotations;
+        [SerializeField] private Vector3[] trackSampledPoints;
+        [SerializeField] private float[] trackSampledSegmentLengths;
+        [SerializeField] private float trackSampledLength;
+        [SerializeField] private bool debugDrawRound;
+        [SerializeField] private bool debugDrawSampledPoints;
+
+        private void OnDrawGizmos()
+        {
+            if (debugDrawRound)
+                DrawRound();
+            if (debugDrawSampledPoints)
+                DrawSampledTrackPoints();
+        }
+
+        public void GenerateTrackData()
+        {
+            Debug.Log("Generate");
+
+            List<Vector3> points = new List<Vector3>();
+            List<Quaternion> rotations = new List<Quaternion>();
+
+            for (int i = 0; i< division; i++)
+            {
+                float angle = 2 * Mathf.PI * i / division;
+                Vector3 newPos = new Vector3(Mathf.Cos(angle) * circleRadius, 0, Mathf.Sin(angle) * circleRadius) + circleCenter;
+                points.Add(newPos);
+            }
+
+            trackSampledPoints = points.ToArray();
+
+            rotations.AddRange(GenerateRotations(trackSampledPoints));
+            trackSampledRotations = rotations.ToArray();
+           
+            {
+                trackSampledSegmentLengths = new float[trackSampledPoints.Length - 1];
+                trackSampledLength = 0;
+
+                for (int i = 0; i < trackSampledPoints.Length - 1; i++)
+                {
+                    Vector3 a = trackSampledPoints[i];
+                    Vector3 b = trackSampledPoints[i + 1];
+
+                    float segmentLength = (b - a).magnitude;
+                    trackSampledSegmentLengths[i] = segmentLength;
+                    trackSampledLength += segmentLength;
+                }
+            }
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(this);
+#endif
+        }
+
+        private void DrawSampledTrackPoints()
+        {
+#if UNITY_EDITOR
+            Handles.DrawAAPolyLine(trackSampledPoints);
+#endif
+        }
+
+        private Quaternion[] GenerateRotations(Vector3[] points)
+        {
+            List<Quaternion> rotations = new List<Quaternion>();
+            float t = 0;
+
+            for (int i = 0; i < points.Length - 1; i++)
+            {
+                rotations.Add(GenerateRotation(points[i], points[i + 1], t));
+                t += 1.0f / (points.Length - 1);
+            }
+
+            rotations.Add(GenerateRotation(points[points.Length - 1], points[0], t));
+          
+            return rotations.ToArray();
+        }
+
+        private Quaternion GenerateRotation(Vector3 a, Vector3 b, float t)
+        {
+            Vector3 dir = (b - a).normalized;
+            Vector3 up = Vector3.Lerp(a, b, t);
+
+            Quaternion rotation = Quaternion.LookRotation(dir, up);
+            return rotation;
+        }
+
+        private void DrawRound()
+        {
+#if UNITY_EDITOR
+            Handles.DrawWireDisc(circleCenter, Vector3.up, circleRadius);
+#endif
+        }
+
+        public override Vector3 GetDirection(float distance)
+        {
+            distance = Mathf.Repeat(distance, trackSampledLength);
+
+            for (int i = 0; i < trackSampledSegmentLengths.Length; i++)
+            {
+                float diff = distance - trackSampledSegmentLengths[i];
+                if (diff < 0)
+                {
+                    return (trackSampledPoints[i + 1] - trackSampledPoints[i]).normalized;
+                }
+                else
+                {
+                    distance -= trackSampledSegmentLengths[i];
+                }
+            }
+            return Vector3.forward;
+        }
+
+        public override Vector3 GetPosition(float distance)
+        {
+            distance = Mathf.Repeat(distance, trackSampledLength);
+
+            for (int i = 0; i < trackSampledSegmentLengths.Length; i++)
+            {
+                float diff = distance - trackSampledSegmentLengths[i];
+                if (diff < 0)
+                {
+                    float t = distance / trackSampledSegmentLengths[i];
+                    return Vector3.Lerp(trackSampledPoints[i], trackSampledPoints[i + 1], t);
+                }
+                else
+                {
+                    distance -= trackSampledSegmentLengths[i];
+                }
+            }
+
+            return Vector3.zero;
+        }
+
+        public override Quaternion GetRotation(float distance)
+        {
+            distance = Mathf.Repeat(distance, trackSampledLength);
+
+            for (int i = 0; i < trackSampledSegmentLengths.Length; i++)
+            {
+                float diff = distance - trackSampledSegmentLengths[i];
+                if (diff < 0)
+                {
+                    float t = distance / trackSampledSegmentLengths[i];
+                    return Quaternion.Slerp(trackSampledRotations[i], trackSampledRotations[i + 1], t);
+                }
+                else
+                {
+                    distance -= trackSampledSegmentLengths[i];
+                }
+            }
+
+            return Quaternion.identity;
+        }
+
+        public override float GetTrackLength()
+        {
+            return trackSampledLength;
+        }
+    }
+
+
+#if UNITY_EDITOR
+    [CustomEditor(typeof(SplineMeshProxy))]
+    public class SplineMeshProxyEditor : Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            if (GUILayout.Button("Update"))
+            {
+                (target as SplineMeshProxy).UpdatePoints();
+            }
+        }
+    }
+#endif
+
+    [RequireComponent(typeof(SplineMesh.Spline))]
+    public class SplineMeshProxy : MonoBehaviour
+    {
+        [SerializeField] private RaceTrackCurved curvedTrack;
+        //[SerializeField] private CurvedTrackPoint pointA;
+        //[SerializeField] private CurvedTrackPoint pointB;
+
+
+        public void UpdatePoints()
+        {
+            var spline = GetComponent<SplineMesh.Spline>();
+
+            spline.nodes.Clear();
+
+            CurvedTrackPoint[] trackPoints = curvedTrack.TrackPoints;
+
+            int countOfTubePoints = trackPoints.Length / 2 + 1;
+            Debug.Log(countOfTubePoints);
+          
+            for (int i = 0; i < countOfTubePoints; i++)
+            {
+                SplineMesh.SplineNode node = new SplineMesh.SplineNode(trackPoints[i].transform.position,
+                    trackPoints[i].transform.position + trackPoints[i].transform.forward * trackPoints[i].GetLength());
+                spline.nodes.Add(node);
+            }
+
+           // spline.nodes.Add(spline.nodes[0]);
+
+            //var n0 = spline.nodes[0];
+            //n0.Position = pointA.transform.position;
+            //n0.Direction = pointA.transform.position + pointA.transform.forward * pointA.GetLength();
+
+            //var n1 = spline.nodes[1];
+            //n1.Position = pointB.transform.position;
+            //n1.Direction = pointB.transform.position + pointB.transform.forward * pointB.GetLength();
+
+        }
+    }
+
+
+[CreateAssetMenu()]
+    public class TrackDescription : ScriptableObject
+    {
+        // [SerializeField] RaceTrack track;
+        //[SerializeField] GameObject RaceTrack;
+        [SerializeField] private string trackName;
+        [SerializeField] private string sceneNickname;
+        [SerializeField] private Sprite previewImage;
+        [SerializeField] private float trackLength;
+        public string TrackName => trackName;
+        public string SceneNickname => sceneNickname;
+        public Sprite PreviewImage => previewImage;
+
+        public float TrackLength
+        {
+            get
+            {
+                return trackLength;
+            }
+            set
+            {
+                trackLength = value;
+            }
+        }
+        
+    }
+
+ public class TrackEntryViewController : MonoBehaviour
+    {
+        [SerializeField] private TrackDescription trackDescription;
+        [SerializeField] private Text trackName;
+        [SerializeField] private Image preview;
+        [SerializeField] private Text trackLength;
+
+        private TrackDescription activeDescription;
+
+        private void Start()
+        {
+            if (trackDescription != null)
+                SetViewValues(trackDescription);
+        }
+
+        public void SetViewValues(TrackDescription desc)
+        {
+            activeDescription = desc;
+            trackName.text = desc.TrackName;
+            preview.sprite = desc.PreviewImage;
+           trackLength.text = "Track Length: " + desc.TrackLength + " m";
+        }
+        
+        public void OnButtonStartLevel()
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(activeDescription.SceneNickname);
+        }
+    }
+
+ public class TrackSelectionViewController : MonoBehaviour
+    {
+        private void Awake()
+        {
+            gameObject.SetActive(false);
+        }
+    }
